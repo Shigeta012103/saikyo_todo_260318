@@ -1,0 +1,17 @@
+.header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.counter {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
