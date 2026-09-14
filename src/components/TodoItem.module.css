@@ -59,6 +59,7 @@
   color: var(--completed);
 }
 
+.addChildButton,
 .deleteButton {
   flex-shrink: 0;
   width: 32px;
@@ -72,9 +73,21 @@
   transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
+.item:hover .addChildButton,
 .item:hover .deleteButton,
+.addChildButton:focus-visible,
 .deleteButton:focus-visible {
   opacity: 1;
+}
+
+.addChildButton:hover {
+  color: var(--accent);
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.addChildButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .deleteButton:hover {

@@ -4,7 +4,8 @@ import { TodoInput } from './components/TodoInput';
 import { TodoList } from './components/TodoList';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useScreenShake } from './hooks/useScreenShake';
-import type { Todo } from './types';
+import { collectDescendantIds } from './utils/todoTree';
+import type { Todo, TodoActions } from './types';
 import styles from './App.module.css';
 
 const STORAGE_KEY = 'saikyo-todos';
@@ -20,17 +21,18 @@ function App() {
   const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const shake = useScreenShake();
 
-  const addTodo = (text: string) => {
+  const addTodo = (text: string, parentId: string | null = null) => {
     const id = generateId();
     const newTodo: Todo = {
       id,
       text,
       completed: false,
       createdAt: Date.now(),
+      parentId,
     };
 
     setNewTodoId(id);
-    setTodos((prev) => [newTodo, ...prev]);
+    setTodos((prev) => (parentId === null ? [newTodo, ...prev] : [...prev, newTodo]));
 
     setTimeout(() => shake(), 150);
 
@@ -43,19 +45,50 @@ function App() {
   };
 
   const toggleTodo = (targetId: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === targetId ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+    setTodos((prev) => {
+      const target = prev.find((todo) => todo.id === targetId);
+      if (!target) {
+        return prev;
+      }
+
+      if (target.completed) {
+        return prev.map((todo) =>
+          todo.id === targetId ? { ...todo, completed: false } : todo
+        );
+      }
+
+      const descendantIds = collectDescendantIds(prev, targetId);
+      return prev.map((todo) =>
+        todo.id === targetId || descendantIds.has(todo.id)
+          ? { ...todo, completed: true }
+          : todo
+      );
+    });
   };
 
   const deleteTodo = (targetId: string) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== targetId));
+    setTodos((prev) => {
+      const descendantIds = collectDescendantIds(prev, targetId);
+      return prev.filter((todo) => todo.id !== targetId && !descendantIds.has(todo.id));
+    });
   };
 
-  const reorderTodos = (reorderedActiveTodos: Todo[]) => {
-    setTodos((prev) => [...reorderedActiveTodos, ...prev.filter((todo) => todo.completed)]);
+  const reorderTodos = (reorderedSiblings: Todo[]) => {
+    setTodos((prev) => {
+      const siblingIds = new Set(reorderedSiblings.map((todo) => todo.id));
+      let nextSiblingIndex = 0;
+
+      return prev.map((todo) =>
+        siblingIds.has(todo.id) ? reorderedSiblings[nextSiblingIndex++] : todo
+      );
+    });
+  };
+
+  const todoActions: TodoActions = {
+    toggle: toggleTodo,
+    remove: deleteTodo,
+    reorder: reorderTodos,
+    addChild: (parentId, text) => addTodo(text, parentId),
   };
 
   const activeCount = todos.filter((todo) => !todo.completed).length;
@@ -74,13 +107,7 @@ function App() {
         )}
       </header>
       <TodoInput onAdd={addTodo} />
-      <TodoList
-        todos={todos}
-        newTodoId={newTodoId}
-        onToggle={toggleTodo}
-        onDelete={deleteTodo}
-        onReorder={reorderTodos}
-      />
+      <TodoList todos={todos} newTodoId={newTodoId} actions={todoActions} />
     </>
   );
 }

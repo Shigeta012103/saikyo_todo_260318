@@ -1,0 +1,22 @@
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list .list {
+  margin: 8px 0 0 12px;
+  padding-left: 20px;
+  border-left: 2px solid var(--border);
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-placeholder);
+  margin: 24px 0 10px;
+  text-align: left;
+}
