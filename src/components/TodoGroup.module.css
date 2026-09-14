@@ -5,6 +5,10 @@
   gap: 8px;
 }
 
+.rootList {
+  gap: 24px;
+}
+
 .list .list {
   margin: 8px 0 0 12px;
   padding-left: 20px;

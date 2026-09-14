@@ -26,7 +26,13 @@ export function TodoGroup({
 }: TodoGroupProps) {
   const activeTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
-  const levelClassName = LEVEL_CLASSES[depth % LEVEL_CLASSES.length];
+  const listClassName = [
+    styles.list,
+    LEVEL_CLASSES[depth % LEVEL_CLASSES.length],
+    depth === 0 ? styles.rootList : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const moveTodo = (targetId: string, direction: MoveDirection) => {
     const currentIndex = activeTodos.findIndex((todo) => todo.id === targetId);
@@ -72,7 +78,7 @@ export function TodoGroup({
           axis="y"
           values={activeTodos}
           onReorder={actions.reorder}
-          className={`${styles.list} ${levelClassName}`}
+          className={listClassName}
           role="list"
           aria-label={ariaLabel}
         >
@@ -90,7 +96,7 @@ export function TodoGroup({
             </p>
           )}
           <ul
-            className={`${styles.list} ${levelClassName}`}
+            className={listClassName}
             role="list"
             aria-label={`${ariaLabel}（完了済み）`}
           >
