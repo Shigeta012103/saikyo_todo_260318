@@ -4,3 +4,5 @@ export interface Todo {
   completed: boolean;
   createdAt: number;
 }
+
+export type MoveDirection = 'up' | 'down';

@@ -54,6 +54,10 @@ function App() {
     setTodos((prev) => prev.filter((todo) => todo.id !== targetId));
   };
 
+  const reorderTodos = (reorderedActiveTodos: Todo[]) => {
+    setTodos((prev) => [...reorderedActiveTodos, ...prev.filter((todo) => todo.completed)]);
+  };
+
   const activeCount = todos.filter((todo) => !todo.completed).length;
 
   return (
@@ -75,6 +79,7 @@ function App() {
         newTodoId={newTodoId}
         onToggle={toggleTodo}
         onDelete={deleteTodo}
+        onReorder={reorderTodos}
       />
     </>
   );

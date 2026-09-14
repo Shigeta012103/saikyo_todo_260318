@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import { triggerExplosion, triggerLightning } from './ExplosionCanvas';
-import type { Todo } from '../types';
+import type { MoveDirection, Todo } from '../types';
 import styles from './TodoItem.module.css';
 
 interface TodoItemProps {
@@ -9,6 +9,7 @@ interface TodoItemProps {
   isNew: boolean;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onMove?: (id: string, direction: MoveDirection) => void;
 }
 
 const slamVariants = {
@@ -30,9 +31,21 @@ const normalVariants = {
   animate: { opacity: 1, y: 0, scale: 1 },
 };
 
-export function TodoItem({ todo, isNew, onToggle, onDelete }: TodoItemProps) {
+const exitAnimation = {
+  opacity: 0,
+  scale: 0.8,
+  filter: 'blur(4px)',
+  transition: { duration: 0.25 },
+};
+
+const layoutTransition = {
+  layout: { type: 'spring', stiffness: 500, damping: 35 },
+} as const;
+
+export function TodoItem({ todo, isNew, onToggle, onDelete, onMove }: TodoItemProps) {
   const checkboxRef = useRef<HTMLButtonElement>(null);
-  const itemRef = useRef<HTMLLIElement>(null);
+  const itemRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
 
   const handleToggle = () => {
     if (!todo.completed && checkboxRef.current) {
@@ -54,19 +67,40 @@ export function TodoItem({ todo, isNew, onToggle, onDelete }: TodoItemProps) {
     onDelete(todo.id);
   };
 
-  return (
-    <motion.li
+  const handleHandleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!onMove || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
+      return;
+    }
+    event.preventDefault();
+    onMove(todo.id, event.key === 'ArrowUp' ? 'up' : 'down');
+  };
+
+  const body = (
+    <motion.div
       ref={itemRef}
-      layout
       variants={isNew ? slamVariants : normalVariants}
       initial="initial"
       animate="animate"
-      exit={{ opacity: 0, scale: 0.8, filter: 'blur(4px)', transition: { duration: 0.25 } }}
-      transition={{
-        layout: { type: 'spring', stiffness: 500, damping: 35 },
-      }}
       className={`${styles.item} ${todo.completed ? styles.completed : ''}`}
     >
+      {onMove && (
+        <button
+          className={styles.dragHandle}
+          onPointerDown={(event) => dragControls.start(event)}
+          onKeyDown={handleHandleKeyDown}
+          aria-label={`「${todo.text}」の優先順位を変更（上下キーで移動）`}
+        >
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+            <circle cx="2" cy="3" r="1.5" />
+            <circle cx="8" cy="3" r="1.5" />
+            <circle cx="2" cy="8" r="1.5" />
+            <circle cx="8" cy="8" r="1.5" />
+            <circle cx="2" cy="13" r="1.5" />
+            <circle cx="8" cy="13" r="1.5" />
+          </svg>
+        </button>
+      )}
+
       <button
         ref={checkboxRef}
         className={`${styles.checkbox} ${todo.completed ? styles.checked : ''}`}
@@ -111,6 +145,29 @@ export function TodoItem({ todo, isNew, onToggle, onDelete }: TodoItemProps) {
           />
         </svg>
       </button>
-    </motion.li>
+    </motion.div>
+  );
+
+  if (!onMove) {
+    return (
+      <motion.li layout exit={exitAnimation} transition={layoutTransition}>
+        {body}
+      </motion.li>
+    );
+  }
+
+  return (
+    <Reorder.Item
+      value={todo}
+      dragListener={false}
+      dragControls={dragControls}
+      animate={{ scale: 1, zIndex: 0 }}
+      exit={exitAnimation}
+      transition={layoutTransition}
+      whileDrag={{ scale: 1.03, zIndex: 1 }}
+      className={styles.draggable}
+    >
+      {body}
+    </Reorder.Item>
   );
 }

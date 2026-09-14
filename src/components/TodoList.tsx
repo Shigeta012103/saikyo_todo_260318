@@ -1,6 +1,6 @@
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, Reorder } from 'framer-motion';
 import { TodoItem } from './TodoItem';
-import type { Todo } from '../types';
+import type { MoveDirection, Todo } from '../types';
 import styles from './TodoList.module.css';
 
 interface TodoListProps {
@@ -8,11 +8,25 @@ interface TodoListProps {
   newTodoId: string | null;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onReorder: (reorderedActiveTodos: Todo[]) => void;
 }
 
-export function TodoList({ todos, newTodoId, onToggle, onDelete }: TodoListProps) {
+export function TodoList({ todos, newTodoId, onToggle, onDelete, onReorder }: TodoListProps) {
   const activeTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
+
+  const moveTodo = (targetId: string, direction: MoveDirection) => {
+    const currentIndex = activeTodos.findIndex((todo) => todo.id === targetId);
+    const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= activeTodos.length) {
+      return;
+    }
+
+    const reordered = [...activeTodos];
+    const [movedTodo] = reordered.splice(currentIndex, 1);
+    reordered.splice(nextIndex, 0, movedTodo);
+    onReorder(reordered);
+  };
 
   if (todos.length === 0) {
     return (
@@ -24,7 +38,15 @@ export function TodoList({ todos, newTodoId, onToggle, onDelete }: TodoListProps
 
   return (
     <div>
-      <ul className={styles.list} role="list" aria-label="タスク一覧">
+      <Reorder.Group
+        as="ul"
+        axis="y"
+        values={activeTodos}
+        onReorder={onReorder}
+        className={styles.list}
+        role="list"
+        aria-label="タスク一覧"
+      >
         <AnimatePresence mode="popLayout">
           {activeTodos.map((todo) => (
             <TodoItem
@@ -33,10 +55,11 @@ export function TodoList({ todos, newTodoId, onToggle, onDelete }: TodoListProps
               isNew={todo.id === newTodoId}
               onToggle={onToggle}
               onDelete={onDelete}
+              onMove={moveTodo}
             />
           ))}
         </AnimatePresence>
-      </ul>
+      </Reorder.Group>
 
       {completedTodos.length > 0 && (
         <>
