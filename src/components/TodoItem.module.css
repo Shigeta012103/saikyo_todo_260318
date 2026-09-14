@@ -6,6 +6,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 14px;
+  box-shadow: inset 3px 0 0 var(--level-color, var(--accent));
   transition: background 0.15s ease;
 }
 
@@ -31,7 +32,7 @@
 }
 
 .checkbox:hover {
-  border-color: var(--accent);
+  border-color: var(--level-color, var(--accent));
 }
 
 .checkbox:focus-visible {
@@ -40,8 +41,8 @@
 }
 
 .checkbox.checked {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--level-color, var(--accent));
+  border-color: var(--level-color, var(--accent));
   color: white;
 }
 
@@ -81,8 +82,8 @@
 }
 
 .addChildButton:hover {
-  color: var(--accent);
-  background: rgba(255, 107, 53, 0.1);
+  color: var(--level-color, var(--accent));
+  background: var(--bg-input);
 }
 
 .addChildButton:focus-visible {

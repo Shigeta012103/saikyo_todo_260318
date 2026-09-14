@@ -3,8 +3,11 @@ import { TodoItem } from './TodoItem';
 import type { MoveDirection, Todo, TodoActions } from '../types';
 import styles from './TodoGroup.module.css';
 
+const LEVEL_CLASSES = [styles.level1, styles.level2, styles.level3];
+
 interface TodoGroupProps {
   todos: Todo[];
+  depth: number;
   childrenByParentId: Map<string | null, Todo[]>;
   newTodoId: string | null;
   actions: TodoActions;
@@ -14,6 +17,7 @@ interface TodoGroupProps {
 
 export function TodoGroup({
   todos,
+  depth,
   childrenByParentId,
   newTodoId,
   actions,
@@ -22,6 +26,7 @@ export function TodoGroup({
 }: TodoGroupProps) {
   const activeTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
+  const levelClassName = LEVEL_CLASSES[depth % LEVEL_CLASSES.length];
 
   const moveTodo = (targetId: string, direction: MoveDirection) => {
     const currentIndex = activeTodos.findIndex((todo) => todo.id === targetId);
@@ -46,6 +51,7 @@ export function TodoGroup({
     >
       <TodoGroup
         todos={childrenByParentId.get(todo.id) ?? []}
+        depth={depth + 1}
         childrenByParentId={childrenByParentId}
         newTodoId={newTodoId}
         actions={actions}
@@ -66,7 +72,7 @@ export function TodoGroup({
           axis="y"
           values={activeTodos}
           onReorder={actions.reorder}
-          className={styles.list}
+          className={`${styles.list} ${levelClassName}`}
           role="list"
           aria-label={ariaLabel}
         >
@@ -83,7 +89,11 @@ export function TodoGroup({
               完了済み（{completedTodos.length}）
             </p>
           )}
-          <ul className={styles.list} role="list" aria-label={`${ariaLabel}（完了済み）`}>
+          <ul
+            className={`${styles.list} ${levelClassName}`}
+            role="list"
+            aria-label={`${ariaLabel}（完了済み）`}
+          >
             <AnimatePresence mode="popLayout">
               {completedTodos.map((todo) => renderTodo(todo))}
             </AnimatePresence>

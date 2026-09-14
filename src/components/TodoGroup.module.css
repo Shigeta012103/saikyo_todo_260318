@@ -8,7 +8,19 @@
 .list .list {
   margin: 8px 0 0 12px;
   padding-left: 20px;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--level-color);
+}
+
+.level1 {
+  --level-color: var(--level-1);
+}
+
+.level2 {
+  --level-color: var(--level-2);
+}
+
+.level3 {
+  --level-color: var(--level-3);
 }
 
 .sectionLabel {

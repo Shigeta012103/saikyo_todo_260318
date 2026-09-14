@@ -24,6 +24,7 @@ export function TodoList({ todos, newTodoId, actions }: TodoListProps) {
     <div>
       <TodoGroup
         todos={childrenByParentId.get(null) ?? []}
+        depth={0}
         childrenByParentId={childrenByParentId}
         newTodoId={newTodoId}
         actions={actions}
